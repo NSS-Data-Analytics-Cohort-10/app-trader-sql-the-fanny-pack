@@ -38,6 +38,7 @@
 -- c. App Trader will spend an average of $1000 per month to market an app regardless of the price of the app. If App Trader owns rights to the app in both stores, it can market the app for both stores for a single cost of $1000 per month.
 
 -- An app that costs $200,000 and an app that costs $1.00 will both cost $1000 a month for marketing, regardless of the number of stores it is in.
+
 -- d. For every half point that an app gains in rating, its projected lifespan increases by one year. In other words, an app with a rating of 0 can be expected to be in use for 1 year, an app with a rating of 1.0 can be expected to last 3 years, and an app with a rating of 4.0 can be expected to last 9 years.
 
 -- App store ratings should be calculated by taking the average of the scores from both app stores and rounding to the nearest 0.5.
@@ -58,6 +59,11 @@ FROM app_store_apps
 SELECT * 
 FROM play_store_apps
 
+
+-- 9000 profit monthly combined with lifespan calculation based on rating to return a 'total profit' value and sort by/limit 10
+
+-- INNER JOIN two tables
+-- We're only including apps available in both app stores.
 SELECT DISTINCT
 	(name),
 	p.rating AS p_rating,
@@ -68,3 +74,22 @@ FROM app_store_apps AS a
 INNER JOIN play_store_apps AS p
 USING (name)
 ORDER BY name;
+
+-- Price
+
+SELECT DISTINCT
+	(name),
+	CAST(a.price AS MONEY) AS a_price
+FROM app_store_apps AS a
+ORDER BY a_price;
+
+SELECT DISTINCT
+	(name),
+	CAST(p.price AS MONEY) AS p_price
+FROM play_store_apps AS p
+ORDER BY p_price;
+
+	CAST((SUM(total_drug_cost)/SUM(total_day_supply)) AS MONEY) AS cost_per_day
+
+
+-- Rating/lifespan
