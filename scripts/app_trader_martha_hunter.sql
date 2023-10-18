@@ -27,7 +27,7 @@
 
 -- The cost of an app is not affected by how many app stores it is on. A $1.00 app on the Apple app store will cost the same as a $1.00 app on both stores.
 
--- If an app is on both stores, it's purchase price will be calculated based off of the highest app price between the two stores.
+-- If an app is on both stores, its purchase price will be calculated based off of the highest app price between the two stores.
 
 -- b. Apps earn $5000 per month, per app store it is on, from in-app advertising and in-app purchases, regardless of the price of the app.
 
@@ -51,3 +51,20 @@
 -- c. Submit a report based on your findings. All analysis work must be done using PostgreSQL, however you may export query results to create charts in Excel for your report.
 
 -- updated 2/18/2023
+
+SELECT * 
+FROM app_store_apps
+
+SELECT * 
+FROM play_store_apps
+
+SELECT DISTINCT
+	(name),
+	p.rating AS p_rating,
+	a.rating AS a_rating,
+	p.price AS p_price,
+	a.price AS a_price
+FROM app_store_apps AS a
+INNER JOIN play_store_apps AS p
+USING (name)
+ORDER BY name;
