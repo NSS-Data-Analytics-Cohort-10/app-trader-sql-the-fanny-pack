@@ -75,34 +75,19 @@ FROM app_store_apps AS a
 INNER JOIN play_store_apps AS p
 USING (name);
 
--- Price
+-- Calculating the cost of each app for App Trader, using CASE statements
 SELECT DISTINCT
 	(name),
 	p.rating AS p_rating,
 	a.rating AS a_rating,
 	CAST(a.price AS MONEY) AS a_price,
 	CAST(p.price AS MONEY) AS p_price,
-	CAST((CASE WHEN a.price < 1 THEN 10000
-	WHEN a.price > 1 THEN (a.price * 10000)
-	ELSE 0 END) AS MONEY) AS a_app_cost
-FROM app_store_apps AS a
-INNER JOIN play_store_apps AS p
-USING (name);
-
-
-	
-SELECT DISTINCT
-	(name),
-	p.rating AS p_rating,
-	a.rating AS a_rating,
-	CAST(a.price AS MONEY) AS a_price,
-	CAST(p.price AS MONEY) AS p_price,
-	CAST((CASE WHEN a.price =< 1 THEN 10000
-		WHEN a.price > 1 THEN (a.price * 10000)
-		ELSE 0 END) AS MONEY) AS a_app_cost,
-	CAST((CASE WHEN p.price =< (CAST 1 AS MONEY) THEN 10000
-		WHEN p.price > 1 THEN (p.price * 10000)
-		ELSE 0 END) AS MONEY) AS p_app_cost
+	CASE WHEN CAST (a.price AS MONEY) < CAST ('1' AS MONEY) THEN CAST (10000 AS MONEY)
+	ELSE (CAST(a.price AS MONEY)*10000)
+	END AS a_app_cost,
+	CASE WHEN CAST (p.price AS MONEY) < CAST ('1' AS MONEY) THEN CAST (10000 AS MONEY)
+	ELSE (CAST(p.price AS MONEY)*10000)
+	END AS p_app_cost
 FROM app_store_apps AS a
 INNER JOIN play_store_apps AS p
 USING (name);
