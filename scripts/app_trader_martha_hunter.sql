@@ -64,32 +64,47 @@ FROM play_store_apps
 
 -- INNER JOIN two tables
 -- We're only including apps available in both app stores.
+-- Casting both user price columns as money in this initial query as well.
 SELECT DISTINCT
 	(name),
 	p.rating AS p_rating,
 	a.rating AS a_rating,
-	p.price AS p_price,
-	a.price AS a_price
+	CAST(a.price AS MONEY) AS a_price,
+	CAST(p.price AS MONEY) AS p_price
 FROM app_store_apps AS a
 INNER JOIN play_store_apps AS p
-USING (name)
-ORDER BY name;
+USING (name);
 
 -- Price
-
 SELECT DISTINCT
 	(name),
-	CAST(a.price AS MONEY) AS a_price
+	p.rating AS p_rating,
+	a.rating AS a_rating,
+	CAST(a.price AS MONEY) AS a_price,
+	CAST(p.price AS MONEY) AS p_price,
+	CAST((CASE WHEN a.price < 1 THEN 10000
+	WHEN a.price > 1 THEN (a.price * 10000)
+	ELSE 0 END) AS MONEY) AS a_app_cost
 FROM app_store_apps AS a
-ORDER BY a_price;
+INNER JOIN play_store_apps AS p
+USING (name);
 
+
+	
 SELECT DISTINCT
 	(name),
-	CAST(p.price AS MONEY) AS p_price
-FROM play_store_apps AS p
-ORDER BY p_price;
-
-	CAST((SUM(total_drug_cost)/SUM(total_day_supply)) AS MONEY) AS cost_per_day
-
+	p.rating AS p_rating,
+	a.rating AS a_rating,
+	CAST(a.price AS MONEY) AS a_price,
+	CAST(p.price AS MONEY) AS p_price,
+	CAST((CASE WHEN a.price =< 1 THEN 10000
+		WHEN a.price > 1 THEN (a.price * 10000)
+		ELSE 0 END) AS MONEY) AS a_app_cost,
+	CAST((CASE WHEN p.price =< (CAST 1 AS MONEY) THEN 10000
+		WHEN p.price > 1 THEN (p.price * 10000)
+		ELSE 0 END) AS MONEY) AS p_app_cost
+FROM app_store_apps AS a
+INNER JOIN play_store_apps AS p
+USING (name);
 
 -- Rating/lifespan
