@@ -87,9 +87,42 @@ SELECT DISTINCT
 	END AS a_app_cost,
 	CASE WHEN CAST (p.price AS MONEY) < CAST ('1' AS MONEY) THEN CAST (10000 AS MONEY)
 	ELSE (CAST(p.price AS MONEY)*10000)
-	END AS p_app_cost
+	END AS p_app_cost,
+	CASE WHEN ((p.rating + a.rating)/2) BETWEEN 0 AND .4 THEN 1
+	WHEN ((p.rating + a.rating)/2) BETWEEN .5 AND .9 THEN 2
+	WHEN ((p.rating + a.rating)/2) BETWEEN 1.0 AND 1.4 THEN 3
+	WHEN ((p.rating + a.rating)/2) BETWEEN 1.5 AND 1.9 THEN 4
+	WHEN ((p.rating + a.rating)/2) BETWEEN 2.0 AND 2.4 THEN 5
+	WHEN ((p.rating + a.rating)/2) BETWEEN 2.5 AND 2.9 THEN 6
+	WHEN ((p.rating + a.rating)/2) BETWEEN 3.0 AND 3.4 THEN 7
+	WHEN ((p.rating + a.rating)/2) BETWEEN 3.5 AND 3.9 THEN 8
+	WHEN ((p.rating + a.rating)/2) BETWEEN 4.0 AND 4.4 THEN 9
+	WHEN ((p.rating + a.rating)/2) BETWEEN 4.5 AND 4.9 THEN 10
+	WHEN ((p.rating + a.rating)/2) = 5.0 THEN 11
+ELSE 0 END AS life_span
 FROM app_store_apps AS a
 INNER JOIN play_store_apps AS p
 USING (name);
 
--- Rating/lifespan
+-- Rating/lifespan						  
+							  
+SELECT DISTINCT (name), 
+p.rating AS p_rating, 
+a.rating AS a_rating,
+CASE WHEN ((p.rating + a.rating)/2) BETWEEN 0 AND .4 THEN 1
+	WHEN ((p.rating + a.rating)/2) BETWEEN .5 AND .9 THEN 2
+	WHEN ((p.rating + a.rating)/2) BETWEEN 1.0 AND 1.4 THEN 3
+	WHEN ((p.rating + a.rating)/2) BETWEEN 1.5 AND 1.9 THEN 4
+	WHEN ((p.rating + a.rating)/2) BETWEEN 2.0 AND 2.4 THEN 5
+	WHEN ((p.rating + a.rating)/2) BETWEEN 2.5 AND 2.9 THEN 6
+	WHEN ((p.rating + a.rating)/2) BETWEEN 3.0 AND 3.4 THEN 7
+	WHEN ((p.rating + a.rating)/2) BETWEEN 3.5 AND 3.9 THEN 8
+	WHEN ((p.rating + a.rating)/2) BETWEEN 4.0 AND 4.4 THEN 9
+	WHEN ((p.rating + a.rating)/2) BETWEEN 4.5 AND 4.9 THEN 10
+	WHEN ((p.rating + a.rating)/2) = 5.0 THEN 11
+ELSE 0 END AS life_span
+FROM app_store_apps AS a
+INNER JOIN play_store_apps AS p
+USING (name)
+ORDER BY life_span DESC;
+							  
