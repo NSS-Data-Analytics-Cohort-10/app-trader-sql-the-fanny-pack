@@ -75,54 +75,123 @@ FROM app_store_apps AS a
 INNER JOIN play_store_apps AS p
 USING (name);
 
--- Calculating the cost of each app for App Trader, using CASE statements
-SELECT DISTINCT
-	(name),
-	p.rating AS p_rating,
-	a.rating AS a_rating,
-	CAST(a.price AS MONEY) AS a_price,
-	CAST(p.price AS MONEY) AS p_price,
-	CASE WHEN CAST (a.price AS MONEY) < CAST ('1' AS MONEY) THEN CAST (10000 AS MONEY)
-	ELSE (CAST(a.price AS MONEY)*10000)
-	END AS a_app_cost,
-	CASE WHEN CAST (p.price AS MONEY) < CAST ('1' AS MONEY) THEN CAST (10000 AS MONEY)
-	ELSE (CAST(p.price AS MONEY)*10000)
-	END AS p_app_cost,
-	CASE WHEN ((p.rating + a.rating)/2) BETWEEN 0 AND .4 THEN 1
-	WHEN ((p.rating + a.rating)/2) BETWEEN .5 AND .9 THEN 2
-	WHEN ((p.rating + a.rating)/2) BETWEEN 1.0 AND 1.4 THEN 3
-	WHEN ((p.rating + a.rating)/2) BETWEEN 1.5 AND 1.9 THEN 4
-	WHEN ((p.rating + a.rating)/2) BETWEEN 2.0 AND 2.4 THEN 5
-	WHEN ((p.rating + a.rating)/2) BETWEEN 2.5 AND 2.9 THEN 6
-	WHEN ((p.rating + a.rating)/2) BETWEEN 3.0 AND 3.4 THEN 7
-	WHEN ((p.rating + a.rating)/2) BETWEEN 3.5 AND 3.9 THEN 8
-	WHEN ((p.rating + a.rating)/2) BETWEEN 4.0 AND 4.4 THEN 9
-	WHEN ((p.rating + a.rating)/2) BETWEEN 4.5 AND 4.9 THEN 10
-	WHEN ((p.rating + a.rating)/2) = 5.0 THEN 11
-ELSE 0 END AS life_span
-FROM app_store_apps AS a
-INNER JOIN play_store_apps AS p
-USING (name);
+-- CTE solution
 
--- Rating/lifespan						  
-							  
-SELECT DISTINCT (name), 
-p.rating AS p_rating, 
-a.rating AS a_rating,
-CASE WHEN ((p.rating + a.rating)/2) BETWEEN 0 AND .4 THEN 1
-	WHEN ((p.rating + a.rating)/2) BETWEEN .5 AND .9 THEN 2
-	WHEN ((p.rating + a.rating)/2) BETWEEN 1.0 AND 1.4 THEN 3
-	WHEN ((p.rating + a.rating)/2) BETWEEN 1.5 AND 1.9 THEN 4
-	WHEN ((p.rating + a.rating)/2) BETWEEN 2.0 AND 2.4 THEN 5
-	WHEN ((p.rating + a.rating)/2) BETWEEN 2.5 AND 2.9 THEN 6
-	WHEN ((p.rating + a.rating)/2) BETWEEN 3.0 AND 3.4 THEN 7
-	WHEN ((p.rating + a.rating)/2) BETWEEN 3.5 AND 3.9 THEN 8
-	WHEN ((p.rating + a.rating)/2) BETWEEN 4.0 AND 4.4 THEN 9
-	WHEN ((p.rating + a.rating)/2) BETWEEN 4.5 AND 4.9 THEN 10
-	WHEN ((p.rating + a.rating)/2) = 5.0 THEN 11
-ELSE 0 END AS life_span
+WITH life_span AS (
+		SELECT 
+			DISTINCT (p.name),
+			p.rating AS p_rating,
+			a.rating AS a_rating,
+			CASE WHEN ((p.rating + a.rating)/2) BETWEEN 0 AND .4 THEN 1
+				WHEN ((p.rating + a.rating)/2) BETWEEN .5 AND .9 THEN 2
+				WHEN ((p.rating + a.rating)/2) BETWEEN 1.0 AND 1.4 THEN 3
+				WHEN ((p.rating + a.rating)/2) BETWEEN 1.5 AND 1.9 THEN 4
+				WHEN ((p.rating + a.rating)/2) BETWEEN 2.0 AND 2.4 THEN 5
+				WHEN ((p.rating + a.rating)/2) BETWEEN 2.5 AND 2.9 THEN 6
+				WHEN ((p.rating + a.rating)/2) BETWEEN 3.0 AND 3.4 THEN 7
+				WHEN ((p.rating + a.rating)/2) BETWEEN 3.5 AND 3.9 THEN 8
+				WHEN ((p.rating + a.rating)/2) BETWEEN 4.0 AND 4.4 THEN 9
+				WHEN ((p.rating + a.rating)/2) BETWEEN 4.5 AND 4.9 THEN 10
+				WHEN ((p.rating + a.rating)/2) = 5.0 THEN 11
+				ELSE 0 END AS life_span
+	FROM app_store_apps AS a
+		INNER JOIN play_store_apps AS p
+		USING (name)),
+a_app_cost AS (
+		SELECT 
+		 	DISTINCT (p.name),
+			a.price,
+			CASE WHEN CAST (a.price AS MONEY) < CAST ('1' AS MONEY) THEN CAST (10000 AS MONEY)
+				ELSE (CAST(a.price AS MONEY)*10000)
+				END AS a_app_cost
+		FROM app_store_apps AS a
+			INNER JOIN play_store_apps AS p
+			USING (name)),
+p_app_cost AS (
+		SELECT 
+	DISTINCT (p.name),		
+	p.price,
+			CASE WHEN CAST (p.price AS MONEY) < CAST ('1' AS MONEY) THEN CAST (10000 AS MONEY)
+				ELSE (CAST(p.price AS MONEY)*10000)
+				END AS p_app_cost
+		FROM app_store_apps AS a
+		INNER JOIN play_store_apps AS p
+		USING (name))
+SELECT DISTINCT
+	(p.name),
+	CASE WHEN (a_app_cost > p_app_cost) THEN CAST(108000 * life_span AS MONEY) - a_app_cost
+		ELSE CAST (life_span * 108000 AS MONEY) - p_app_cost
+		END AS total_profit
 FROM app_store_apps AS a
-INNER JOIN play_store_apps AS p
-USING (name)
-ORDER BY life_span DESC;
-							  
+		INNER JOIN play_store_apps AS p
+		USING (name)
+		INNER JOIN life_span
+		ON p.name = life_span.name
+		INNER JOIN a_app_cost
+		ON p.name = a_app_cost.name
+		INNER JOIN p_app_cost
+		ON p.name = p_app_cost.name
+ORDER BY total_profit DESC
+LIMIT 10;
+
+
+WITH life_span AS (
+		SELECT 
+			DISTINCT (p.name),
+			p.rating AS p_rating,
+			a.rating AS a_rating,
+			CASE WHEN ((p.rating + a.rating)/2) BETWEEN 0 AND .4 THEN 1
+				WHEN ((p.rating + a.rating)/2) BETWEEN .5 AND .9 THEN 2
+				WHEN ((p.rating + a.rating)/2) BETWEEN 1.0 AND 1.4 THEN 3
+				WHEN ((p.rating + a.rating)/2) BETWEEN 1.5 AND 1.9 THEN 4
+				WHEN ((p.rating + a.rating)/2) BETWEEN 2.0 AND 2.4 THEN 5
+				WHEN ((p.rating + a.rating)/2) BETWEEN 2.5 AND 2.9 THEN 6
+				WHEN ((p.rating + a.rating)/2) BETWEEN 3.0 AND 3.4 THEN 7
+				WHEN ((p.rating + a.rating)/2) BETWEEN 3.5 AND 3.9 THEN 8
+				WHEN ((p.rating + a.rating)/2) BETWEEN 4.0 AND 4.4 THEN 9
+				WHEN ((p.rating + a.rating)/2) BETWEEN 4.5 AND 4.9 THEN 10
+				WHEN ((p.rating + a.rating)/2) = 5.0 THEN 11
+				ELSE 0 END AS life_span
+	FROM app_store_apps AS a
+		INNER JOIN play_store_apps AS p
+		USING (name)),
+a_app_cost AS (
+		SELECT 
+		 	DISTINCT (p.name),
+			a.price,
+			CASE WHEN CAST (a.price AS MONEY) < CAST ('1' AS MONEY) THEN CAST (10000 AS MONEY)
+				ELSE (CAST(a.price AS MONEY)*10000)
+				END AS a_app_cost
+		FROM app_store_apps AS a
+			INNER JOIN play_store_apps AS p
+			USING (name)),
+p_app_cost AS (
+		SELECT 
+	DISTINCT (p.name),		
+	p.price,
+			CASE WHEN CAST (p.price AS MONEY) < CAST ('1' AS MONEY) THEN CAST (10000 AS MONEY)
+				ELSE (CAST(p.price AS MONEY)*10000)
+				END AS p_app_cost
+		FROM app_store_apps AS a
+		INNER JOIN play_store_apps AS p
+		USING (name))
+SELECT DISTINCT
+	(p.name),
+	primary_genre,
+	CAST(a.price AS MONEY),
+	a.content_rating,
+	a.rating,
+	CASE WHEN (a_app_cost > p_app_cost) THEN CAST(108000 * life_span AS MONEY) - a_app_cost
+		ELSE CAST (life_span * 108000 AS MONEY) - p_app_cost
+		END AS total_profit
+FROM app_store_apps AS a
+		INNER JOIN play_store_apps AS p
+		USING (name)
+		INNER JOIN life_span
+		ON p.name = life_span.name
+		INNER JOIN a_app_cost
+		ON p.name = a_app_cost.name
+		INNER JOIN p_app_cost
+		ON p.name = p_app_cost.name
+ORDER BY total_profit DESC
+LIMIT 10;
