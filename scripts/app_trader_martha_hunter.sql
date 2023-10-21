@@ -75,10 +75,12 @@ FROM app_store_apps AS a
 INNER JOIN play_store_apps AS p
 USING (name);
 
+
+--full query using CTEs
 WITH life_span AS (
 		SELECT 
 		DISTINCT (p.name),
-			(p.rating + a.rating + 1)
+			(p.rating + a.rating + 1) AS lifespan
 	FROM app_store_apps AS a
 		INNER JOIN play_store_apps AS p
 		USING (name)),
@@ -108,11 +110,11 @@ SELECT DISTINCT
 	CAST(p.price AS MONEY),
 	a.content_rating,
 	a.rating,
-	life_span,
+	lifespan,
 	p_app_cost,
 	a_app_cost,
-	CASE WHEN (a_app_cost > p_app_cost) THEN CAST(108000 * life_span AS MONEY) - a_app_cost
-		ELSE CAST(life_span * 108000 AS MONEY) - p_app_cost
+	CASE WHEN (a_app_cost > p_app_cost) THEN CAST(108000 * life_span.lifespan AS MONEY) - a_app_cost
+		ELSE CAST(life_span.lifespan * 108000 AS MONEY) - p_app_cost
 		END AS total_profit
 FROM app_store_apps AS a
 		INNER JOIN play_store_apps AS p
@@ -123,4 +125,5 @@ FROM app_store_apps AS a
 		ON p.name = a_app_cost.name
 		INNER JOIN p_app_cost
 		ON p.name = p_app_cost.name
-ORDER BY total_profit DESC;
+ORDER BY total_profit DESC
+LIMIT 10;
