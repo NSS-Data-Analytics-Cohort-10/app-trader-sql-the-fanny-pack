@@ -80,58 +80,6 @@ USING (name);
 WITH life_span AS (
 		SELECT 
 		DISTINCT (p.name),
-			(p.rating + a.rating + 1) AS lifespan
-	FROM app_store_apps AS a
-		INNER JOIN play_store_apps AS p
-		USING (name)),
-a_app_cost AS (
-		SELECT 
-		 	DISTINCT (p.name),
-			a.price,
-				CASE WHEN CAST (a.price AS MONEY) > CAST ('1' AS MONEY) THEN (CAST(a.price AS MONEY)*10000)
-		ELSE CAST ('10000' AS MONEY)
-	END AS a_app_cost
-		FROM app_store_apps AS a
-			INNER JOIN play_store_apps AS p
-			USING (name)),
-p_app_cost AS (
-		SELECT 
-	DISTINCT (p.name),		
-	p.price,
-			CASE WHEN CAST (p.price AS MONEY) > CAST ('1' AS MONEY) THEN (CAST(p.price AS MONEY)*10000)
-		ELSE CAST ('10000' AS MONEY)
-				END AS p_app_cost
-		FROM app_store_apps AS a
-		INNER JOIN play_store_apps AS p
-		USING (name))
-SELECT DISTINCT
-	(a.name),
-	primary_genre,
-	CAST(p.price AS MONEY),
-	a.content_rating,
-	a.rating,
-	lifespan,
-	p_app_cost,
-	a_app_cost,
-	CASE WHEN (a_app_cost > p_app_cost) THEN CAST(108000 * life_span.lifespan AS MONEY) - a_app_cost
-		ELSE CAST(life_span.lifespan * 108000 AS MONEY) - p_app_cost
-		END AS total_profit
-FROM app_store_apps AS a
-		INNER JOIN play_store_apps AS p
-		USING (name)
-		INNER JOIN life_span
-		ON p.name = life_span.name
-		INNER JOIN a_app_cost
-		ON p.name = a_app_cost.name
-		INNER JOIN p_app_cost
-		ON p.name = p_app_cost.name
-ORDER BY total_profit DESC
-
-
---full query with ROUNDed lifespan!
-WITH life_span AS (
-		SELECT 
-		DISTINCT (p.name),
 			ROUND(p.rating + a.rating + 1) AS lifespan
 	FROM app_store_apps AS a
 		INNER JOIN play_store_apps AS p
