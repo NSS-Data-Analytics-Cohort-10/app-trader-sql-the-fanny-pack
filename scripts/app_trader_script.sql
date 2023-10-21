@@ -58,8 +58,8 @@ FROM app_store_apps as a_s
 INNER JOIN play_store_apps as p_s
 USING(name)
 ORDER BY total_profit DESC, name ASC
-LIMIT 10;
-
+LIMIT 200;
+-- extended limit past ten to see where past the frontrunning 6 apps there is a tie of total revenue... which is at 1.07 million
 
 SELECT DISTINCT(name), a_s.price as a_price, a_s.rating as a_rating, p_s.rating as p_rating, p_s.price as p_price,
 CASE
